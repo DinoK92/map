@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Dispensary Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body>
+    <h1>Dispensary, Schools, & Places of Worship Map</h1>
+    <div id="map" style="height: 600px;"></div>
+
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([40.7128, -74.0060], 12);  // Centered on NYC
+
+        // Load tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data © OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Define colors and radius for different categories
+        const categorySettings = {
+            "Active": { color: "green", radius: 304.8 },
+            "Pending": { color: "red", radius: 304.8 },
+            "School": { color: "orange", radius: 152.4 },
+            "Place of Worship": { color: "purple", radius: 60.96 }
+        };
+
+        // Load the JSON data
+        fetch("map_data.json")
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(point => {
+                    if (point.Latitude && point.Longitude) {
+                        let settings = categorySettings[point.Status] || { color: "blue", radius: 100 };
+                        L.circle([point.Latitude, point.Longitude], {
+                            radius: settings.radius,  // Converted from feet to meters
+                            color: settings.color,
+                            fillOpacity: 0.3
+                        }).addTo(map)
+                        .bindPopup(`<b>${point.Street}</b><br>${point.City}, ${point.State}`);
+                    }
+                });
+            })
+            .catch(error => console.error("Error loading map data:", error));
+    </script>
+</body>
+</html>
